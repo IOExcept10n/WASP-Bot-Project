@@ -107,7 +107,7 @@ namespace ProjectBot.Modules
                     await user.AddRoleAsync(GetRole("Student"));
                 }
             }
-            await ReplyAsync(":white_check_mark:Класс успешно добавлен!");
+            await ReplyAsync(":white_check_mark: Класс успешно добавлен!");
         }
         /// <summary>
         /// Метод для указания классного руководителя.
@@ -122,7 +122,7 @@ namespace ProjectBot.Modules
         [Command("setsupervisor")]
         public async Task SetSupervisor(string className, SocketGuildUser teacher)
         {
-            var role = GetRole("[Class] " + className);
+            IRole role = GetRole("[Class] " + className);
             if (role == null)
             {
                 await ReplyAsync(":x: Увы, но класса с данным названием не существует на этом сервере.");
@@ -130,10 +130,14 @@ namespace ProjectBot.Modules
             }
             await teacher.AddRoleAsync(role);
             role = GetRole($"{className}-teacher");
-            if (role != null && role.Members.Count() > 0)
+            if (role != null && (role as SocketRole).Members.Count() > 0)
             {
                 await ReplyAsync(":x: Сожалею, но данная роль уже занята другим преподавателем :disappointed:");
                 return;
+            }
+            else if (role == null)
+            {
+                role = await GetOrCreateRole($"{className}-teacher");
             }
             await teacher.AddRoleAsync(role);
             await ReplyAsync(":white_check_mark: Роль была добавлена успешно!");
