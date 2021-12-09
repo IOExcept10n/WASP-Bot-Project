@@ -16,38 +16,46 @@ namespace ProjectBot
     class Program
     {
         private DiscordSocketClient socketClient;
-
+        /// <summary>
+        /// Точка входа программы.
+        /// </summary>
         static void Main(string[] args)
         {
             CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
             new Program().MainAsync().GetAwaiter().GetResult();
         }
-
+        /// <summary>
+        /// Основной метод запуска бота
+        /// </summary>
         public async Task MainAsync()
         {
-            using (var services = ConfigureServices())//Директива using. Позволяет с помощью временной переменной делать какие-либо действия.
+            using (var services = ConfigureServices())
             {
                 socketClient = services.GetRequiredService<DiscordSocketClient>();
                 socketClient.Log += LogAsync;
                 services.GetRequiredService<CommandService>().Log += LogAsync;
-                // Tokens should be considered secret data, and never hard-coded.
                 var values = ReadJSON(".env");
                 string token = values["token"];
                 await socketClient.LoginAsync(TokenType.Bot, token);
                 await socketClient.StartAsync();
 
                 await services.GetRequiredService<CommandServiceHandler>().InitializeAsync();
-                // Block the program until it is closed.
                 await Task.Delay(Timeout.Infinite);
             }
         }
-
+        /// <summary>
+        /// Метод для логирования клиента.
+        /// </summary>
+        /// <param name="logMsg">Сообщения логов.</param>
         private Task LogAsync(LogMessage logMsg)
         {
             Console.WriteLine(logMsg);
             return Task.CompletedTask;
         }
-
+        /// <summary>
+        /// Метод настройки сервисов программы.
+        /// </summary>
+        /// <returns>Используемые программой сервисы.</returns>
         private ServiceProvider ConfigureServices()
         {
             return new ServiceCollection().AddSingleton<DiscordSocketClient>()
@@ -56,7 +64,11 @@ namespace ProjectBot
                 .AddSingleton<HttpClient>()
                 .BuildServiceProvider();
         }
-
+        /// <summary>
+        /// Метод для считывания JSON-файла и получения значения. Используется для чтения токена.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         private static Dictionary<string, string> ReadJSON(string path)
         {
             Dictionary<string, string> ret = null;
